@@ -1,10 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { Post, posts as postsApi } from '@/lib/api';
+import { Post } from '@/lib/api';
 
 interface PostCardProps {
   post: Post;
+  isTyping?: boolean;
 }
 
 const UNIVERSE_STYLES: Record<string, { bg: string; color: string; border: string }> = {
@@ -25,6 +26,7 @@ function getUniverseStyle(universe?: string) {
 function timeAgo(date: string) {
   const diff = Date.now() - new Date(date).getTime();
   const mins = Math.floor(diff / 60000);
+  if (mins < 1) return 'just now';
   if (mins < 60) return `${mins}m`;
   const hrs = Math.floor(mins / 60);
   if (hrs < 24) return `${hrs}h`;
@@ -36,45 +38,43 @@ function formatCount(n: number) {
   return String(n);
 }
 
-export default function PostCard({ post }: PostCardProps) {
+export default function PostCard({ post, isTyping }: PostCardProps) {
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(post.likeCount);
   const [showComments, setShowComments] = useState(false);
   const [comment, setComment] = useState('');
   const [showAllReplies, setShowAllReplies] = useState(false);
   const [activeReactions, setActiveReactions] = useState<Set<string>>(new Set());
+  const [reactionCounts, setReactionCounts] = useState<Record<string, number>>(
+    Object.fromEntries((post.reactions || []).map(r => [r.label, r.count]))
+  );
 
   const toggleReaction = (label: string) => {
     setActiveReactions(prev => {
       const next = new Set(prev);
-      next.has(label) ? next.delete(label) : next.add(label);
+      if (next.has(label)) {
+        next.delete(label);
+        setReactionCounts(c => ({ ...c, [label]: (c[label] ?? 0) - 1 }));
+      } else {
+        next.add(label);
+        setReactionCounts(c => ({ ...c, [label]: (c[label] ?? 0) + 1 }));
+      }
       return next;
     });
   };
 
   const universeStyle = getUniverseStyle(post.character.universe);
 
-  const handleLike = async () => {
+  const handleLike = () => {
     setLiked(prev => !prev);
     setLikeCount(prev => liked ? prev - 1 : prev + 1);
-    try {
-      const res = await postsApi.like(post.id);
-      setLiked(res.liked);
-    } catch {
-      setLiked(prev => !prev);
-      setLikeCount(prev => liked ? prev + 1 : prev - 1);
-    }
   };
 
-  const handleComment = async (e: React.SyntheticEvent<HTMLFormElement>) => {
+  const handleComment = (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!comment.trim()) return;
-    try {
-      await postsApi.comment(post.id, comment);
-      setComment('');
-    } catch {
-      // handle error
-    }
+    setComment('');
+    setShowComments(false);
   };
 
   const visibleReplies = post.replies
@@ -222,7 +222,7 @@ export default function PostCard({ post }: PostCardProps) {
           <div className="flex flex-wrap gap-1.5 mb-3">
             {post.reactions.map(r => {
               const active = activeReactions.has(r.label);
-              const count = active ? r.count + 1 : r.count;
+              const count = reactionCounts[r.label] ?? r.count;
               return (
                 <button
                   key={r.label}
@@ -301,8 +301,8 @@ export default function PostCard({ post }: PostCardProps) {
           </button>
         </div>
 
-        {/* Replies */}
-        {visibleReplies.length > 0 && (
+        {/* Replies + typing indicator */}
+        {(visibleReplies.length > 0 || isTyping) && (
           <div
             className="mt-3 ml-[54px] pl-3.5"
             style={{ borderLeft: '2px solid rgba(255,255,255,0.07)' }}
@@ -312,7 +312,7 @@ export default function PostCard({ post }: PostCardProps) {
               return (
                 <div key={reply.id}
                   className="py-2.5"
-                  style={{ borderBottom: i < visibleReplies.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
+                  style={{ borderBottom: (i < visibleReplies.length - 1 || isTyping) ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
                   <div className="flex items-center gap-2 mb-1.5 flex-wrap">
                     <div className="w-7 h-7 rounded-full flex items-center justify-center text-sm flex-shrink-0"
                       style={{ background: '#1a1a2e' }}>
@@ -337,7 +337,33 @@ export default function PostCard({ post }: PostCardProps) {
                 </div>
               );
             })}
-            {!showAllReplies && hiddenCount > 0 && (
+
+            {/* Typing indicator */}
+            {isTyping && (
+              <div className="py-2.5 flex items-center gap-2">
+                <div className="w-7 h-7 rounded-full flex items-center justify-center text-sm flex-shrink-0"
+                  style={{ background: '#1a1a2e' }}>
+                  ✦
+                </div>
+                <div className="flex gap-1 items-center">
+                  <span className="text-[12px]" style={{ color: '#6060a0' }}>A character is typing</span>
+                  <span className="flex gap-0.5 ml-1">
+                    {[0, 1, 2].map(i => (
+                      <span
+                        key={i}
+                        className="w-1 h-1 rounded-full"
+                        style={{
+                          background: '#c084fc',
+                          animation: `pulse 1.2s ease-in-out ${i * 0.2}s infinite`,
+                        }}
+                      />
+                    ))}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {!showAllReplies && hiddenCount > 0 && !isTyping && (
               <button
                 onClick={() => setShowAllReplies(true)}
                 className="text-[12px] mt-2 hover:text-purple-300 transition-colors"
@@ -373,6 +399,13 @@ export default function PostCard({ post }: PostCardProps) {
           </form>
         )}
       </div>
+
+      <style>{`
+        @keyframes pulse {
+          0%, 100% { opacity: 0.3; transform: scale(0.8); }
+          50% { opacity: 1; transform: scale(1.2); }
+        }
+      `}</style>
     </div>
   );
 }

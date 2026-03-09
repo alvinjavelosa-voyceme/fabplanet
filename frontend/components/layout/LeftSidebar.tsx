@@ -11,7 +11,11 @@ const navItems = [
   { icon: '👤', label: 'Profile', href: '/profile' },
 ];
 
-export default function LeftSidebar() {
+interface LeftSidebarProps {
+  onCompose?: () => void;
+}
+
+export default function LeftSidebar({ onCompose }: LeftSidebarProps) {
   const pathname = usePathname();
 
   return (
@@ -44,6 +48,7 @@ export default function LeftSidebar() {
 
       {/* Post button */}
       <button
+        onClick={onCompose}
         className="mt-5 py-3 rounded-xl text-sm font-semibold text-white transition-opacity hover:opacity-90"
         style={{ background: 'linear-gradient(135deg, #7c3aed, #a855f7)' }}
       >

@@ -1,3 +1,7 @@
+'use client';
+
+import { useState } from 'react';
+
 const trending = [
   { rank: '1 · Trending', tag: '#PowerScaling', posts: '48.2k posts' },
   { rank: '2 · One Piece', tag: '#KingOfPirates', posts: '21.4k posts' },
@@ -7,9 +11,9 @@ const trending = [
 ];
 
 const whoToFollow = [
-  { emoji: '🍜', name: 'Naruto Uzumaki', series: '🔥 Naruto · Hokage' },
-  { emoji: '⚡', name: 'Killua Zoldyck', series: '⚡ HxH · Assassin' },
-  { emoji: '✉️', name: 'Violet Evergarden', series: '💌 VE · Auto Memory Doll' },
+  { id: 'naruto', emoji: '🍜', name: 'Naruto Uzumaki', series: '🔥 Naruto · Hokage' },
+  { id: 'killua', emoji: '⚡', name: 'Killua Zoldyck', series: '⚡ HxH · Assassin' },
+  { id: 'violet', emoji: '✉️', name: 'Violet Evergarden', series: '💌 VE · Auto Memory Doll' },
 ];
 
 const universes = [
@@ -19,6 +23,16 @@ const universes = [
 ];
 
 export default function RightSidebar() {
+  const [followed, setFollowed] = useState<Set<string>>(new Set());
+
+  const toggleFollow = (id: string) => {
+    setFollowed(prev => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
+
   return (
     <div className="py-6 px-4 flex flex-col gap-4 overflow-y-auto" style={{ maxHeight: '100vh', position: 'sticky', top: 0 }}>
 
@@ -45,22 +59,32 @@ export default function RightSidebar() {
           ✦ Who to Follow
         </div>
         <div className="flex flex-col gap-3">
-          {whoToFollow.map(item => (
-            <div key={item.name} className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-full flex items-center justify-center text-lg flex-shrink-0"
-                style={{ background: '#1a1a2e' }}>
-                {item.emoji}
+          {whoToFollow.map(item => {
+            const isFollowing = followed.has(item.id);
+            return (
+              <div key={item.id} className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-full flex items-center justify-center text-lg flex-shrink-0"
+                  style={{ background: '#1a1a2e' }}>
+                  {item.emoji}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-semibold truncate" style={{ color: '#e2e2f0' }}>{item.name}</div>
+                  <div className="text-[11px] truncate" style={{ color: '#6060a0' }}>{item.series}</div>
+                </div>
+                <button
+                  onClick={() => toggleFollow(item.id)}
+                  className="text-xs font-semibold px-3 py-1 rounded-full flex-shrink-0 transition-all"
+                  style={{
+                    background: isFollowing ? 'rgba(255,255,255,0.06)' : 'rgba(192,132,252,0.15)',
+                    border: isFollowing ? '1px solid rgba(255,255,255,0.15)' : '1px solid rgba(192,132,252,0.3)',
+                    color: isFollowing ? '#6060a0' : '#c084fc',
+                  }}
+                >
+                  {isFollowing ? 'Following ✓' : 'Follow'}
+                </button>
               </div>
-              <div className="flex-1 min-w-0">
-                <div className="text-sm font-semibold truncate" style={{ color: '#e2e2f0' }}>{item.name}</div>
-                <div className="text-[11px] truncate" style={{ color: '#6060a0' }}>{item.series}</div>
-              </div>
-              <button className="text-xs font-semibold px-3 py-1 rounded-full flex-shrink-0 transition-colors hover:bg-purple-400/20"
-                style={{ background: 'rgba(192,132,252,0.15)', border: '1px solid rgba(192,132,252,0.3)', color: '#c084fc' }}>
-                Follow
-              </button>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
