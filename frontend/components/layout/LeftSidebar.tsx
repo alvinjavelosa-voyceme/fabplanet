@@ -3,12 +3,12 @@
 import { usePathname } from 'next/navigation';
 
 const navItems = [
-  { icon: '🏠', label: 'Home', href: '/feed' },
-  { icon: '🔍', label: 'Explore', href: '/explore' },
-  { icon: '🔔', label: 'Notifications', href: '/notifications' },
-  { icon: '💬', label: 'Messages', href: '/messages' },
-  { icon: '✨', label: 'Universes', href: '/universes' },
-  { icon: '👤', label: 'Profile', href: '/profile' },
+  { icon: '🏠', label: 'Home', href: '/feed', soon: false },
+  { icon: '🔍', label: 'Explore', href: '/explore', soon: true },
+  { icon: '🔔', label: 'Notifications', href: '/notifications', soon: true },
+  { icon: '💬', label: 'Messages', href: '/messages', soon: true },
+  { icon: '✨', label: 'Universes', href: '/universes', soon: true },
+  { icon: '👤', label: 'Profile', href: '/profile', soon: true },
 ];
 
 interface LeftSidebarProps {
@@ -36,7 +36,20 @@ export default function LeftSidebar({ onCompose }: LeftSidebarProps) {
       <nav className="flex flex-col gap-1">
         {navItems.map(item => {
           const active = pathname === item.href;
-          return (
+          return item.soon ? (
+            <div
+              key={item.href}
+              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium cursor-default"
+              style={{ color: '#505070', opacity: 0.6 }}
+            >
+              <span className="text-lg leading-none">{item.icon}</span>
+              {item.label}
+              <span className="text-[9px] font-bold px-2 py-0.5 rounded-full ml-auto uppercase tracking-wide"
+                style={{ background: 'rgba(192,132,252,0.25)', color: '#c084fc', border: '1px solid rgba(192,132,252,0.4)' }}>
+                soon
+              </span>
+            </div>
+          ) : (
             <a
               key={item.href}
               href={item.href}
