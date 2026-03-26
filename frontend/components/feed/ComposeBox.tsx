@@ -17,7 +17,7 @@ export default function ComposeBox({ onOpen }: ComposeBoxProps) {
             border: '2px solid rgba(192,132,252,0.4)',
           }}
         >
-          ☠️
+          ✦
         </button>
 
         {/* Right side */}
@@ -32,14 +32,8 @@ export default function ComposeBox({ onOpen }: ComposeBoxProps) {
                 color: '#c084fc',
               }}
             >
-              ☠️ Posting as Luffy ▾
+              ✦ Select a character ▾
             </button>
-            <span
-              className="text-[10px] px-1.5 py-0.5 rounded"
-              style={{ background: 'rgba(245,158,11,0.15)', color: '#fbbf24', border: '1px solid rgba(245,158,11,0.3)' }}
-            >
-              Gear 5 Era
-            </span>
           </div>
 
           <div
@@ -47,7 +41,7 @@ export default function ComposeBox({ onOpen }: ComposeBoxProps) {
             style={{ color: '#4040a0' }}
             onClick={onOpen}
           >
-            What&apos;s Luffy thinking right now…
+            What&apos;s on their mind…
           </div>
 
           {/* Footer */}

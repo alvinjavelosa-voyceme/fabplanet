@@ -11,14 +11,25 @@ const navItems = [
   { icon: '👤', label: 'Profile', href: '/profile' },
 ];
 
-export default function LeftSidebar() {
+interface LeftSidebarProps {
+  onCompose?: () => void;
+}
+
+export default function LeftSidebar({ onCompose }: LeftSidebarProps) {
   const pathname = usePathname();
 
   return (
     <div className="sticky top-0 h-screen flex flex-col py-6 px-4 overflow-hidden">
       {/* Logo */}
       <div className="flex items-center gap-2 mb-6 text-xl font-bold" style={{ color: '#c084fc' }}>
-        ✦ <span className="text-white">Char</span>Verse
+        <span className="inline-block" style={{ animation: 'planetSpin 8s linear infinite', fontSize: '24px' }}>🪐</span>
+        <span><span className="text-white">Fab</span>Planet</span>
+        <style>{`
+          @keyframes planetSpin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        `}</style>
       </div>
 
       {/* Nav */}
@@ -44,6 +55,7 @@ export default function LeftSidebar() {
 
       {/* Post button */}
       <button
+        onClick={onCompose}
         className="mt-5 py-3 rounded-xl text-sm font-semibold text-white transition-opacity hover:opacity-90"
         style={{ background: 'linear-gradient(135deg, #7c3aed, #a855f7)' }}
       >
